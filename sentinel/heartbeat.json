@@ -1,7 +1,7 @@
 {
- "at": "2026-08-19T02:29:57+00:00",
+ "at": "2026-08-19T02:34:05+00:00",
  "exit": 10,
- "day_count": 2,
- "latest_date": "2026-08-20",
- "summary": "sentinel.no_future_date: 最新一期是 2026-08-20，那一天還沒到（還有 14 小時） —— 日期是被寫出來的，不是被觀測到的"
+ "day_count": 1,
+ "latest_date": "2026-08-19",
+ "summary": "sentinel.no_data_loss: 天數從 2 掉到 1 —— 已發布的資料只該增加。有東西蓋掉了 index"
 }
