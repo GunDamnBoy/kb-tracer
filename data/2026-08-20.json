@@ -1,0 +1,19 @@
+{
+ "date": "2026-08-20",
+ "upstream_date": "2026-08-20",
+ "note": "launchd 觸發驗證用的合成草稿，非真實資料，只寫進 kb-tracer 靶子",
+ "items": [
+  {
+   "k": "用途",
+   "v": "驗證 launchd 在 60 秒內自動消化 outbox"
+  },
+  {
+   "k": "來源",
+   "v": "手工合成，不是 pipeline B 產出"
+  }
+ ],
+ "provenance": {
+  "derived_from": "SYNTHETIC — launchd 觸發測試",
+  "raw_fetched_at": null
+ }
+}
