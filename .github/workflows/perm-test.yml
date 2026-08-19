@@ -1,0 +1,40 @@
+# 用完就刪。存在的唯一目的是**製造一次 403**。
+#
+# 工單 16 的已知約束原本寫「403 有兩種來源要能分辨」，但零 PAT 之後那兩種都不存在
+# 了（見工單 16 的訂正）。真正還會發生的是這一種：**workflow 的 permissions 給得
+# 比它要做的事少**。這支故意只給 contents: read 然後嘗試 push，看它長什麼樣。
+#
+# 沒有製造過的失敗不算驗證過——包括「我以為不會發生的那種」。
+
+name: perm-test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  push-with-read-only:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: 用唯讀權限嘗試 push（預期 403）
+        run: |
+          git config user.name  "perm-test"
+          git config user.email "perm-test@users.noreply.github.com"
+          date -u > .perm-test-scratch
+          git add .perm-test-scratch
+          git commit -m "perm-test: 這顆 commit 應該推不上去"
+          set +e
+          git push 2>&1 | tee /tmp/push.log
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "----- push 退出碼：$code -----"
+          if [ "$code" -eq 0 ]; then
+            echo "推成功了 —— 這代表 permissions 沒有生效，是個要查的問題"
+            exit 1
+          fi
+          grep -qi "403\|permission\|denied" /tmp/push.log \
+            && echo "如預期被擋下來" \
+            || echo "被擋了，但訊息不是預期的樣子 —— 值得看一眼"
