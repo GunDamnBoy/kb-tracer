@@ -1,0 +1,102 @@
+# 哨兵——每天問一次「這套系統還活著嗎」。
+#
+# 三件跟直覺不一樣的事：
+#
+# 1. **heartbeat 永遠要 commit，判定紅的也要。** heartbeat 的語意是「我跑過了」，
+#    不是「一切正常」。所以寫它的那一步不能掛在成功路徑上。
+#
+# 2. **cron 不準時，而且會漏跑。** GitHub 不保證排程準點，尖峰會延遲甚至整輪不跑。
+#    所以哨兵的門檻用「幾小時沒動」而不是「今天有沒有跑」，分鐘也刻意避開整點。
+#
+# 3. **這個 workflow 自己會被 GitHub 關掉。** public repo 連續 60 天沒有活動就會
+#    被自動停用，而且沒有官方 opt-out。看守者跟被看守的東西綁在同一個開關上，
+#    **而且正好在事情已經出問題的時候一起死**。
+#    → 這就是為什麼 Mac 上那支 watch_sentinel.py 存在。它不在這個開關的管轄範圍內。
+
+name: sentinel
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/checkout@v5
+        with:
+          repository: GunDamnBoy/kb-core
+          path: kb-core
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: 跑哨兵
+        id: sentinel
+        run: |
+          set +e
+          python kb-core/tools/sentinel.py . kb-tracer
+          code=$?
+          set -e
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "哨兵退出碼：$code"
+
+      # 這一步刻意沒有 if: —— 判定紅的時候 heartbeat 更需要被寫下來。
+      - name: 寫回 heartbeat 與報告
+        run: |
+          git config user.name  "kb-sentinel"
+          git config user.email "sentinel@users.noreply.github.com"
+          git add sentinel
+          if git diff --cached --quiet; then
+            echo "沒有東西可以 commit —— heartbeat 的 at 每次執行都會變，"
+            echo "所以這個狀態是不可能的。哨兵可能根本沒跑到寫檔那一步。"
+            exit 1
+          fi
+          git commit -m "sentinel: heartbeat $(date -u +%FT%TZ)"
+          git pull --rebase
+          git push
+
+      - name: 確保 label 存在
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh label create sentinel --force -c B60205 -d "哨兵自動開立"
+
+      - name: 有問題就開／更新 issue
+        if: steps.sentinel.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh issue list --label sentinel --state open --json number -q '.[0].number')
+          if [ -z "$n" ]; then
+            gh issue create --title "哨兵：kb-tracer 有東西不對" \
+                            --label sentinel --body-file sentinel/report.md
+          else
+            echo "同一個問題已經有 #$n，改成留言而不是再開一張"
+            gh issue comment "$n" --body-file sentinel/report.md
+          fi
+
+      # 會固定響的警報就是雜訊，而雜訊訓練人忽略警報。所以恢復了要自己閉嘴。
+      - name: 恢復了就關掉 issue
+        if: steps.sentinel.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh issue list --label sentinel --state open --json number -q '.[0].number')
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --body-file sentinel/report.md
+            gh issue close "$n" --comment "哨兵這一輪全綠，自動關閉。"
+          else
+            echo "全綠，而且沒有開著的 issue —— 沒有話要說"
+          fi
+
+      - name: 把哨兵的判定帶回 workflow 狀態
+        if: steps.sentinel.outputs.code != '0'
+        run: exit 1
