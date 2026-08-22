@@ -1,7 +1,7 @@
 {
- "at": "2026-08-21T03:18:04+00:00",
+ "at": "2026-08-22T03:09:41+00:00",
  "exit": 10,
  "day_count": 1,
  "latest_date": "2026-08-19",
- "summary": "sentinel.data_fresh: 最新一期是 2026-08-19，已經 59 小時 （上限 36）—— 管線停了；sentinel.updated_fresh: index.updated 是 2026-08-19T01:53:29+00:00，已經 49 小時 （上限 30）—— 沒有人在跑"
+ "summary": "sentinel.data_fresh: 最新一期是 2026-08-19，已經 83 小時 （上限 36）—— 管線停了；sentinel.updated_fresh: index.updated 是 2026-08-19T01:53:29+00:00，已經 73 小時 （上限 30）—— 沒有人在跑"
 }

@@ -1,8 +1,8 @@
-# 哨兵回報 · 2026-08-21T03:18:04+00:00
+# 哨兵回報 · 2026-08-22T03:09:41+00:00
 
-- ❌ `sentinel.data_fresh` 最新一期是 2026-08-19，已經 59 小時 （上限 36）—— 管線停了
+- ❌ `sentinel.data_fresh` 最新一期是 2026-08-19，已經 83 小時 （上限 36）—— 管線停了
 - ✅ `sentinel.no_future_date`
-- ❌ `sentinel.updated_fresh` index.updated 是 2026-08-19T01:53:29+00:00，已經 49 小時 （上限 30）—— 沒有人在跑
+- ❌ `sentinel.updated_fresh` index.updated 是 2026-08-19T01:53:29+00:00，已經 73 小時 （上限 30）—— 沒有人在跑
 - ✅ `sentinel.no_data_loss`
 - ⏭️ `sentinel.ledger_overdue` 這個系統還沒有訊號帳本，該項未執行
 
